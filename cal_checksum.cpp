@@ -10,15 +10,6 @@ void dump(unsigned char* buf, int size)
     }
 }
 
-void print_ip(uint32_t ip)
-{
-    uint8_t temp[4];
-    temp[0] = (ip >> 24);
-    temp[1] = (ip >> 16) & 0xff;
-    temp[2] = (ip >> 8) & 0xff;
-    temp[3] = ip & 0xff;
-    printf("%u.%u.%u.%u\t", temp[0], temp[1], temp[2], temp[3]);
-}
 
 uint16_t calc(uint16_t * data, uint32_t data_len)
 {

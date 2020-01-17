@@ -30,14 +30,6 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     struct tcphdr * tcp_header = reinterpret_cast<struct tcphdr*>(data + ip_header->ihl*4);
     uint8_t * payload = data + (ip_header->ihl*4) + (tcp_header->th_off*4);
 
-//    dump(data, ntohs(ip_header->tot_len));
-//    cout << endl;
-//    printf("ip_header_checksum = %04X , %04X\n", ip_header->check, cal_checksum_ip(data));
-//    printf("tcp_header_checksum = %04X , %04X\n", tcp_header->check, cal_checksum_tcp(data));
-//    printf("tcp_header_hlen = %u\n", tcp_header->th_off*4);
-
-//    dump(data, ntohs(ip_header->tot_len));
-
     char *Pattern = global_argv[1];
     char *Replace = global_argv[2];
 
@@ -129,7 +121,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     }
 
 
-    key.print_Key();
+
     memset(global_packet, 0, 10000);
     memcpy(global_packet, data, ret);
     global_ret = ret;
@@ -137,6 +129,8 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     cal_checksum_ip(global_packet);
     cal_checksum_tcp(global_packet);
 
+
+    key.print_Key();
     printf("------------------------------------------------------------\n");
 
 

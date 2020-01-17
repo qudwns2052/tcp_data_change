@@ -17,6 +17,4 @@ struct pseudohdr
 uint16_t calc(uint16_t * data, uint32_t data_len);
 uint16_t cal_checksum_ip(uint8_t * data);
 uint16_t cal_checksum_tcp(uint8_t * data);
-
 void dump(unsigned char* buf, int size);
-void print_ip(uint32_t ip);
