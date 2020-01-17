@@ -50,33 +50,27 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     Key key;
     uint32_t state;
 
-    if(ntohl(ip_header->saddr) < ntohl(ip_header->daddr))
+    if(ip_header->saddr < ip_header->daddr)
     {
-        key = Key(ntohl(ip_header->saddr), ntohl(ip_header->daddr),
-                       ntohs(tcp_header->th_sport), ntohs(tcp_header->th_dport));
+        key = Key(ip_header->saddr, ip_header->daddr,
+                       tcp_header->th_sport, tcp_header->th_dport);
         state = 0;
     }
     else
     {
-        key = Key(ntohl(ip_header->daddr), ntohl(ip_header->saddr),
-                       ntohs(tcp_header->th_dport), ntohs(tcp_header->th_sport));
+        key = Key(ip_header->daddr, ip_header->saddr,
+                       tcp_header->th_dport, tcp_header->th_sport);
         state = 1;
     }
 
     if(session.find(key) == session.end())
     {
-        printf("make\n");
         session[key].first = 0;
         session[key].second = state;
     }
 
     if(session[key].second == state)
     {
-
-        printf("same state\n");
-        printf("before tcp_header->seq = %08X\n", ntohl(tcp_header->seq));
-        printf("session[key].first = %d\n", session[key].first);
-
         if(gap_len < 0)
         {
             tcp_header->seq -= htonl(-session[key].first);
@@ -85,14 +79,9 @@ static u_int32_t print_pkt (struct nfq_data *tb)
         {
             tcp_header->seq += htonl(session[key].first);
         }
-        printf("after tcp_header->seq = %08X\n", ntohl(tcp_header->seq));
     }
     else
     {
-        printf("diff state\n");
-        printf("before tcp_header->ack_seq = %08X\n", ntohl(tcp_header->ack_seq));
-        printf("session[key].first = %d\n", session[key].first);
-
         if(gap_len < 0)
         {
             tcp_header->ack_seq += htonl(-session[key].first);
@@ -102,7 +91,6 @@ static u_int32_t print_pkt (struct nfq_data *tb)
             tcp_header->ack_seq -= htonl(session[key].first);
         }
 
-        printf("after tcp_header->ack_seq = %08X\n", ntohl(tcp_header->ack_seq));
     }
 
 
@@ -112,21 +100,12 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     {
         if(!memcmp(payload + i, Pattern, Pattern_len))
         {
-            memset(temp_buf, 0, sizeof(char) * 1500);
+            memset(temp_buf, 0, 1500);
             memcpy(temp_buf, payload + i + Pattern_len, ret - (i + Pattern_len));
             memcpy(payload + i, Replace, Replace_len);
             memcpy(payload + i + Replace_len, temp_buf, ret - (i + Replace_len));
 
-
             session[key].first += gap_len;
-            printf("session[key] = %d\n", session[key]);
-//            printf("else = %d\n", ret - (i + Pattern_len));
-//            printf("ret = %d\n", ret);
-//            printf("value = %d\n", session[key]);
-//            printf("gap_len = %d\n", gap_len);
-//            printf("ip_header->tot_len = %04X\n", ntohs(ip_header->tot_len));
-
-
 
             if(gap_len < 0)
             {
@@ -137,10 +116,11 @@ static u_int32_t print_pkt (struct nfq_data *tb)
                 ip_header->tot_len += htons(gap_len);
             }
 
-
             ret += gap_len;
-
             i+= Replace_len;
+
+            session[key].second = state;
+
         }
         else
         {
@@ -149,12 +129,8 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     }
 
 
-
-    printf("seq = %08X\nack = %08X\n", ntohl(tcp_header->seq), ntohl(tcp_header->ack_seq));
-    printf("ret = %08X\n", ret);
-
-    session[key].second = state;
     key.print_Key();
+    memset(global_packet, 0, 10000);
     memcpy(global_packet, data, ret);
     global_ret = ret;
 
@@ -163,7 +139,6 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     printf("------------------------------------------------------------\n");
 
-//    dump(global_packet, ntohs(ip_header->tot_len));
 
     //*****************************************************************//
 

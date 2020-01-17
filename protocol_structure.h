@@ -36,9 +36,9 @@ public:
 
     void print_Key(void)
     {
-        print_ip(saddr); print_ip(daddr);
-        printf("%u\t%u\n", (ports >> 16) & 0xffff, ports & 0xffff);
-
+        printf("%s\t",inet_ntoa(*reinterpret_cast<struct in_addr*>(&saddr)));
+        printf("%s\t",inet_ntoa(*reinterpret_cast<struct in_addr*>(&daddr)));
+        printf("%u\t%u\n", htons((ports >> 16) & 0xffff), htons(ports & 0xffff));
 
     }
 
